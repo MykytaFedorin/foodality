@@ -6,6 +6,7 @@ import { ShoppingList } from './components/ShoppingList';
 import { InventoryView } from './components/InventoryView';
 import { SettingsView } from './components/SettingsView';
 import { Navbar } from './components/Navbar';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { Sparkles } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -38,6 +39,7 @@ export const App: React.FC = () => {
 
   return (
     <>
+      <PWAInstallPrompt />
       {/* App Header */}
       <header style={{
         padding: '16px 20px',
