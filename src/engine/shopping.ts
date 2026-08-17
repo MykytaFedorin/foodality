@@ -49,6 +49,13 @@ export function generateShoppingList(
   const result: ShoppingItem[] = [];
 
   for (const [name, meta] of Object.entries(rawNeededGrams)) {
+    // 0. Check if item is in user Blacklist
+    const isBlacklisted = profile.blacklist && profile.blacklist.some(b => {
+      const term = b.trim().toLowerCase();
+      return term.length > 0 && (name.toLowerCase().includes(term) || term.includes(name.toLowerCase()));
+    });
+    if (isBlacklisted) continue;
+
     // 1. Deduct existing inventory
     const existing = currentInventory.find(inv => inv.name.toLowerCase() === name.toLowerCase());
     const existingAmount = existing ? existing.quantityGrams : 0;

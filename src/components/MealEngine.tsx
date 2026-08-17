@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db, UserProfile } from '../db';
 import { generateMealOptions, MealOption } from '../engine/planner';
-import { Utensils, Clock, Flame, CheckCircle, Sparkles, ChefHat } from 'lucide-react';
+import { fetchLiveAPIRecipesForInventory } from '../engine/api';
+import { Utensils, Clock, Flame, CheckCircle, Sparkles, ChefHat, RefreshCw } from 'lucide-react';
 
 export const MealEngine: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -9,6 +10,7 @@ export const MealEngine: React.FC = () => {
   const [eatenCaloriesToday, setEatenCaloriesToday] = useState<number>(0);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number>(0);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isFetchingAPI, setIsFetchingAPI] = useState<boolean>(false);
 
   const loadMealData = async () => {
     const p = await db.userProfile.get('default');
@@ -16,7 +18,6 @@ export const MealEngine: React.FC = () => {
     setProfile(p);
 
     const inventory = await db.inventory.toArray();
-    const recipes = await db.recipes.toArray();
     const cooked = await db.cookedMeals.toArray();
 
     // Calculate eaten calories today
@@ -25,7 +26,12 @@ export const MealEngine: React.FC = () => {
     const totalEaten = logs.reduce((acc, log) => acc + log.calories, 0);
     setEatenCaloriesToday(totalEaten);
 
-    const generated = generateMealOptions(recipes, inventory, cooked, p, totalEaten);
+    setIsFetchingAPI(true);
+    const inventoryNames = inventory.map(i => i.name);
+    const liveRecipes = await fetchLiveAPIRecipesForInventory(inventoryNames);
+    const generated = generateMealOptions(liveRecipes, inventory, cooked, p, totalEaten);
+    setIsFetchingAPI(false);
+
     setOptions(generated);
   };
 
@@ -251,16 +257,38 @@ export const MealEngine: React.FC = () => {
               {!activeOption.isReheatOption && (
                 <div>
                   <h4 style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Взвесить на кухонных весах {activeOption.portionsToCook > 1 ? '(на 2 порции)' : ''}:
+                    Ингредиенты на весах {activeOption.portionsToCook > 1 ? '(на 2 порции)' : ''}:
                   </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    {activeOption.scaledIngredients.map((ing) => (
-                      <div key={ing.productName} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', padding: '6px 10px', background: 'rgba(255,255,255,0.02)', borderRadius: '6px' }}>
-                        <span>• {ing.productName}</span>
-                        <strong style={{ color: 'var(--accent-emerald)' }}>{ing.scaledGrams} г</strong>
-                      </div>
-                    ))}
+                    {activeOption.scaledIngredients.map((ing) => {
+                      const isEggs = ing.productName.toLowerCase().includes('яйц');
+                      const pcsCount = Math.max(1, Math.round(ing.scaledGrams / 50));
+                      return (
+                        <div key={ing.productName} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', padding: '6px 10px', background: 'rgba(255,255,255,0.02)', borderRadius: '6px' }}>
+                          <span>• {ing.productName}</span>
+                          <strong style={{ color: 'var(--accent-emerald)' }}>
+                            {isEggs ? `${pcsCount} шт (${ing.scaledGrams}г)` : `${ing.scaledGrams} г`}
+                          </strong>
+                        </div>
+                      );
+                    })}
                   </div>
+                </div>
+              )}
+
+              {/* Step-by-Step Cooking Instructions */}
+              {activeOption.recipe.instructions && activeOption.recipe.instructions.length > 0 && (
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px 14px', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <h4 style={{ fontSize: '0.9rem', color: 'var(--accent-emerald)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <ChefHat size={16} /> Пошаговый рецепт приготовления:
+                  </h4>
+                  <ol style={{ paddingLeft: '18px', margin: 0, display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    {activeOption.recipe.instructions.map((step, idx) => (
+                      <li key={idx} style={{ lineHeight: '1.4' }}>
+                        {step}
+                      </li>
+                    ))}
+                  </ol>
                 </div>
               )}
 
@@ -276,8 +304,17 @@ export const MealEngine: React.FC = () => {
           <Sparkles color="var(--accent-amber)" size={32} style={{ marginBottom: '10px' }} />
           <h3 style={{ fontSize: '1.1rem' }}>Холодильник почти пуст!</h3>
           <p style={{ color: 'var(--text-secondary)', margin: '8px 0 16px 0', fontSize: '0.9rem' }}>
-            Нет продуктов для приготовления целого блюда под калораж. Перейдите во вкладку Закупки, чтобы пополнить запасы!
+            Нет продуктов для приготовления целого блюда под калораж.
           </p>
+          
+          <button 
+            className="btn-secondary" 
+            style={{ width: '100%', minHeight: '48px', color: 'var(--accent-emerald)' }} 
+            onClick={loadMealData}
+          >
+            <RefreshCw size={16} className={isFetchingAPI ? 'animate-spin' : ''} />
+            {isFetchingAPI ? 'Загрузка рецептов из TheMealDB API...' : '🌐 Запросить рецепты по API из интернета'}
+          </button>
         </div>
       )}
     </div>

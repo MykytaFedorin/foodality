@@ -86,23 +86,39 @@ export async function initDatabase() {
   const recipeCount = await db.recipes.count();
   if (recipeCount === 0) {
     await db.recipes.bulkAdd(INITIAL_RECIPES);
+  } else {
+    for (const recipe of INITIAL_RECIPES) {
+      await db.recipes.put(recipe);
+    }
   }
 }
 
-export async function populateInitialInventory(selectedStapleNames: string[]) {
-  const itemsToAdd: InventoryItem[] = INITIAL_STAPLES
-    .filter(staple => selectedStapleNames.includes(staple.name))
-    .map(staple => ({
-      name: staple.name,
-      category: staple.category,
-      quantityGrams: staple.defaultQty,
-      unit: staple.unit,
-      caloriesPer100g: staple.c,
-      proteinPer100g: staple.p,
-      fatPer100g: staple.f,
-      carbPer100g: staple.carb,
-      isStaple: true
-    }));
+export interface SelectedStapleWithQty {
+  name: string;
+  quantity: number;
+}
 
-  await db.inventory.bulkAdd(itemsToAdd);
+export async function populateInitialInventory(selectedStaplesWithQty: SelectedStapleWithQty[]) {
+  const itemsToAdd: InventoryItem[] = [];
+
+  for (const item of selectedStaplesWithQty) {
+    const meta = INITIAL_STAPLES.find(s => s.name === item.name);
+    if (meta) {
+      itemsToAdd.push({
+        name: meta.name,
+        category: meta.category,
+        quantityGrams: item.quantity,
+        unit: meta.unit,
+        caloriesPer100g: meta.c,
+        proteinPer100g: meta.p,
+        fatPer100g: meta.f,
+        carbPer100g: meta.carb,
+        isStaple: true
+      });
+    }
+  }
+
+  if (itemsToAdd.length > 0) {
+    await db.inventory.bulkAdd(itemsToAdd);
+  }
 }

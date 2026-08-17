@@ -1,26 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { db, UserProfile } from '../db';
-import { Flame, ShieldAlert, RotateCcw } from 'lucide-react';
+import { INITIAL_STAPLES } from '../db/initialData';
+import { Settings, Flame, ShieldAlert, Save, CheckCircle, Plus, Search } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [targetCalories, setTargetCalories] = useState<number>(2000);
   const [blacklist, setBlacklist] = useState<string[]>([]);
-  const [newBlacklistItem, setNewBlacklistItem] = useState<string>('');
+  const [blacklistSearchQuery, setBlacklistSearchQuery] = useState<string>('');
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false);
 
-  const loadProfile = async () => {
-    const p = await db.userProfile.get('default');
-    if (p) {
-      setProfile(p);
-      setTargetCalories(p.targetCalories);
-      setBlacklist(p.blacklist || []);
+  useEffect(() => {
+    const loadProfile = async () => {
+      const p = await db.userProfile.get('default');
+      if (p) {
+        setProfile(p);
+        setTargetCalories(p.targetCalories);
+        setBlacklist(p.blacklist || []);
+      }
+    };
+    loadProfile();
+  }, []);
+
+  const filteredSuggestions = INITIAL_STAPLES.filter(staple => {
+    const isAlreadyBlacklisted = blacklist.some(b => b.toLowerCase() === staple.name.toLowerCase());
+    const matchesQuery = blacklistSearchQuery.trim().length > 0 && 
+      staple.name.toLowerCase().includes(blacklistSearchQuery.trim().toLowerCase());
+    return !isAlreadyBlacklisted && matchesQuery;
+  }).slice(0, 8);
+
+  const addBlacklistItem = (nameToAdd?: string) => {
+    const targetName = nameToAdd || blacklistSearchQuery.trim();
+    if (targetName && !blacklist.includes(targetName)) {
+      setBlacklist([targetName, ...blacklist]);
+      setBlacklistSearchQuery('');
     }
   };
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  const removeBlacklistItem = (item: string) => {
+    setBlacklist(blacklist.filter(b => b !== item));
+  };
 
   const handleSave = async () => {
     if (!profile) return;
@@ -32,46 +51,43 @@ export const SettingsView: React.FC = () => {
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
-  const addBlacklist = () => {
-    if (newBlacklistItem.trim() && !blacklist.includes(newBlacklistItem.trim())) {
-      setBlacklist([...blacklist, newBlacklistItem.trim()]);
-      setNewBlacklistItem('');
-    }
-  };
-
-  const removeBlacklist = (item: string) => {
-    setBlacklist(blacklist.filter(b => b !== item));
-  };
-
-  const handleResetAll = async () => {
-    if (window.confirm('Вы уверены, что хотите сбросить все данные и запустить настройку заново?')) {
-      await db.delete();
-      window.location.reload();
-    }
-  };
-
   if (!profile) return null;
 
   return (
-    <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <h2 style={{ fontSize: '1.2rem' }}>Настройки профиля и целей</h2>
+    <div style={{ padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <Settings color="var(--accent-emerald)" size={24} />
+        <h2 style={{ fontSize: '1.25rem' }}>Настройки профиля</h2>
+      </div>
 
       {savedSuccess && (
-        <div style={{ background: 'rgba(16, 185, 129, 0.2)', border: '1px solid var(--accent-emerald)', padding: '12px', borderRadius: 'var(--radius-md)', color: '#34d399', fontWeight: 600 }}>
-          ✓ Настройки успешно сохранены!
+        <div style={{
+          background: 'rgba(16, 185, 129, 0.2)',
+          border: '1px solid var(--accent-emerald)',
+          borderRadius: 'var(--radius-md)',
+          padding: '12px 16px',
+          color: '#34d399',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontWeight: 600,
+          fontSize: '0.9rem'
+        }}>
+          <CheckCircle size={20} />
+          <span>Настройки успешно сохранены!</span>
         </div>
       )}
 
-      {/* Target calories */}
+      {/* Target Calories Card */}
       <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Flame color="var(--accent-emerald)" size={20} />
-          <h3 style={{ fontSize: '1rem' }}>Суточная норма калорий</h3>
+          <h3 style={{ fontSize: '1.05rem' }}>Цель калорийности</h3>
         </div>
 
         <div>
-          <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
-            Цель: <strong style={{ color: 'var(--text-primary)', fontSize: '1.1rem' }}>{targetCalories} ккал</strong>
+          <label style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
+            Суточный калораж: <strong style={{ color: 'var(--text-primary)', fontSize: '1.15rem' }}>{targetCalories} ккал</strong>
           </label>
           <input 
             type="range" 
@@ -85,41 +101,103 @@ export const SettingsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Blacklist editor */}
+      {/* Blacklist / Allergens Card with Autocomplete Search */}
       <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <ShieldAlert color="var(--accent-rose)" size={20} />
-          <h3 style={{ fontSize: '1rem' }}>Черный список продуктов (Исключения)</h3>
+          <h3 style={{ fontSize: '1.05rem' }}>Черный список продуктов и Исключения</h3>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <input 
-            className="input-field" 
-            placeholder="Добавить продукт (например, Кинза)" 
-            value={newBlacklistItem} 
-            onChange={e => setNewBlacklistItem(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && addBlacklist()}
-          />
-          <button className="btn-secondary" onClick={addBlacklist}>Добавить</button>
+        {/* Autocomplete Input */}
+        <div style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+              <Search size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '14px' }} />
+              <input 
+                className="input-field"
+                placeholder="Поиск продуктов для исключения..."
+                value={blacklistSearchQuery}
+                onChange={(e) => setBlacklistSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addBlacklistItem()}
+                style={{ paddingLeft: '42px' }}
+              />
+            </div>
+            <button className="btn-secondary" onClick={() => addBlacklistItem()}>
+              Добавить
+            </button>
+          </div>
+
+          {/* Autocomplete Dropdown */}
+          {blacklistSearchQuery.trim().length > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: 'calc(100% + 4px)',
+              left: 0,
+              right: 0,
+              background: 'rgba(15, 23, 42, 0.98)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid var(--accent-rose)',
+              borderRadius: 'var(--radius-md)',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              zIndex: 500,
+              boxShadow: 'var(--shadow-card)'
+            }}>
+              {filteredSuggestions.length > 0 ? (
+                filteredSuggestions.map(item => (
+                  <div 
+                    key={item.name}
+                    onClick={() => addBlacklistItem(item.name)}
+                    style={{
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      borderBottom: '1px solid rgba(255,255,255,0.05)',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(244, 63, 94, 0.15)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.name}</span>
+                    <span className="chip chip-rose" style={{ fontSize: '0.72rem' }}>
+                      <Plus size={12} /> Исключить
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div 
+                  onClick={() => addBlacklistItem()}
+                  style={{ padding: '12px 16px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--accent-rose)', fontWeight: 600 }}
+                >
+                  + Исключить точное совпадение: "{blacklistSearchQuery.trim()}"
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-          {blacklist.map(b => (
-            <span key={b} className="chip chip-rose">
-              {b}
-              <button onClick={() => removeBlacklist(b)} style={{ background: 'none', border: 'none', color: 'inherit', marginLeft: '4px', cursor: 'pointer' }}>✕</button>
+        {/* Blacklisted items list */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', minHeight: '32px' }}>
+          {blacklist.map((item) => (
+            <span key={item} className="chip chip-rose" style={{ paddingRight: '6px' }}>
+              {item}
+              <button 
+                onClick={() => removeBlacklistItem(item)}
+                style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', marginLeft: '4px' }}
+              >
+                ✕
+              </button>
             </span>
           ))}
-          {blacklist.length === 0 && <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Нет исключений</span>}
+          {blacklist.length === 0 && (
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Нет исключений</span>
+          )}
         </div>
       </div>
 
       <button className="btn-primary" onClick={handleSave}>
-        Сохранить изменения
-      </button>
-
-      <button className="btn-secondary" style={{ color: 'var(--accent-rose)', borderColor: 'rgba(244, 63, 94, 0.3)', marginTop: '20px' }} onClick={handleResetAll}>
-        <RotateCcw size={16} /> Сбросить все данные приложения
+        <Save size={20} /> Сохранить настройки
       </button>
     </div>
   );

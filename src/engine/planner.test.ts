@@ -53,10 +53,29 @@ describe('Deterministic Planner Engine Tests', () => {
     expect(target).toBe(667); // 2000 / 3 = 667 kcal
   });
 
-  it('filters out blacklisted recipes (e.g. pork)', () => {
+  it('filters out blacklisted recipes via substring matching (e.g. pork or cheese)', () => {
     const options = generateMealOptions(sampleRecipes, sampleInventory, [], sampleProfile, 0);
     const hasPork = options.some(opt => opt.recipe.title.includes('свинины'));
     expect(hasPork).toBe(false);
+
+    // Test partial ingredient match (e.g. "сыр" matching "Сыр Твердый")
+    const profileWithCheese: UserProfile = { ...sampleProfile, blacklist: ['сыр'] };
+    const cheeseRecipes: Recipe[] = [
+      {
+        id: 'cheese-toast',
+        title: 'Тост с сыром',
+        category: 'BREAKFAST',
+        isBatchable: false,
+        prepTimeMin: 10,
+        imageUrl: 'http://example.com/toast.jpg',
+        ingredients: [
+          { productId: 'cheese', productName: 'Сыр Твердый', defaultGrams: 50, caloriesPer100g: 360, proteinPer100g: 26, fatPer100g: 28, carbPer100g: 0, category: 'fridge' }
+        ],
+        instructions: ['Пожарить тост']
+      }
+    ];
+    const optionsCheese = generateMealOptions(cheeseRecipes, sampleInventory, [], profileWithCheese, 0);
+    expect(optionsCheese.length).toBe(0);
   });
 
   it('decides 2-portion batching when inventory supports it', () => {

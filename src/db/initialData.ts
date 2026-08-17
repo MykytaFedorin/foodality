@@ -21,21 +21,79 @@ export interface Recipe {
 }
 
 export const INITIAL_STAPLES = [
+  // Крупы и каши
   { name: 'Гречка', category: 'pantry' as const, defaultQty: 1000, unit: 'g' as const, c: 343, p: 13, f: 3.4, carb: 72 },
   { name: 'Рис басмати', category: 'pantry' as const, defaultQty: 1000, unit: 'g' as const, c: 345, p: 7.5, f: 0.6, carb: 78 },
-  { name: 'Макароны твердых сортов', category: 'pantry' as const, defaultQty: 500, unit: 'g' as const, c: 350, p: 12, f: 1.5, carb: 71 },
+  { name: 'Рис круглозерный', category: 'pantry' as const, defaultQty: 1000, unit: 'g' as const, c: 340, p: 6.5, f: 0.7, carb: 79 },
   { name: 'Овсяные хлопья', category: 'pantry' as const, defaultQty: 800, unit: 'g' as const, c: 366, p: 11.9, f: 7.2, carb: 69 },
-  { name: 'Оливковое масло', category: 'pantry' as const, defaultQty: 500, unit: 'ml' as const, c: 884, p: 0, f: 100, carb: 0 },
-  { name: 'Подсолнечное масло', category: 'pantry' as const, defaultQty: 1000, unit: 'ml' as const, c: 884, p: 0, f: 100, carb: 0 },
-  { name: 'Соль и Специи', category: 'pantry' as const, defaultQty: 200, unit: 'g' as const, c: 0, p: 0, f: 0, carb: 0 },
+  { name: 'Булгур', category: 'pantry' as const, defaultQty: 500, unit: 'g' as const, c: 342, p: 12.3, f: 1.3, carb: 76 },
+  { name: 'Кускус', category: 'pantry' as const, defaultQty: 500, unit: 'g' as const, c: 376, p: 12.8, f: 0.6, carb: 77 },
+  { name: 'Перловка', category: 'pantry' as const, defaultQty: 800, unit: 'g' as const, c: 320, p: 9.3, f: 1.1, carb: 73 },
+  { name: 'Пшено', category: 'pantry' as const, defaultQty: 800, unit: 'g' as const, c: 348, p: 11.5, f: 3.3, carb: 69 },
+
+  // Макароны и бобовые
+  { name: 'Макароны твердых сортов', category: 'pantry' as const, defaultQty: 500, unit: 'g' as const, c: 350, p: 12, f: 1.5, carb: 71 },
+  { name: 'Спагетти', category: 'pantry' as const, defaultQty: 500, unit: 'g' as const, c: 350, p: 12, f: 1.5, carb: 71 },
+  { name: 'Чечевица красная', category: 'pantry' as const, defaultQty: 500, unit: 'g' as const, c: 314, p: 21.6, f: 1.1, carb: 48 },
+  { name: 'Нут', category: 'pantry' as const, defaultQty: 500, unit: 'g' as const, c: 364, p: 19, f: 6, carb: 61 },
+  { name: 'Фасоль консервированная', category: 'pantry' as const, defaultQty: 400, unit: 'g' as const, c: 90, p: 6, f: 0.5, carb: 15 },
+
+  // Мясо и птица
   { name: 'Куриное филе', category: 'fridge' as const, defaultQty: 800, unit: 'g' as const, c: 165, p: 31, f: 3.6, carb: 0 },
+  { name: 'Бедро куриное (без кожи)', category: 'fridge' as const, defaultQty: 800, unit: 'g' as const, c: 185, p: 20, f: 11, carb: 0 },
   { name: 'Филе индейки', category: 'fridge' as const, defaultQty: 600, unit: 'g' as const, c: 130, p: 25, f: 2.5, carb: 0 },
+  { name: 'Говядина постная', category: 'fridge' as const, defaultQty: 600, unit: 'g' as const, c: 187, p: 19, f: 12, carb: 0 },
+  { name: 'Фарш говяжий', category: 'fridge' as const, defaultQty: 500, unit: 'g' as const, c: 254, p: 17.2, f: 20, carb: 0 },
+  { name: 'Фарш куриный', category: 'fridge' as const, defaultQty: 500, unit: 'g' as const, c: 143, p: 17.4, f: 8.1, carb: 0 },
+
+  // Рыба и морепродукты
+  { name: 'Филе лосося', category: 'fridge' as const, defaultQty: 400, unit: 'g' as const, c: 208, p: 20, f: 13, carb: 0 },
+  { name: 'Филе трески', category: 'fridge' as const, defaultQty: 500, unit: 'g' as const, c: 82, p: 18, f: 0.7, carb: 0 },
+  { name: 'Тунец консервированный в с/с', category: 'pantry' as const, defaultQty: 200, unit: 'g' as const, c: 96, p: 23, f: 0.5, carb: 0 },
+  { name: 'Креветки', category: 'fridge' as const, defaultQty: 500, unit: 'g' as const, c: 99, p: 24, f: 0.3, carb: 0 },
+
+  // Молочные продукты и сыры
   { name: 'Яйца куриные', category: 'fridge' as const, defaultQty: 10, unit: 'pcs' as const, c: 157, p: 12.7, f: 11.5, carb: 0.7 },
   { name: 'Творог 5%', category: 'fridge' as const, defaultQty: 400, unit: 'g' as const, c: 121, p: 17, f: 5, carb: 3 },
+  { name: 'Творог 0%', category: 'fridge' as const, defaultQty: 400, unit: 'g' as const, c: 71, p: 18, f: 0.2, carb: 3.3 },
   { name: 'Сыр Твердый', category: 'fridge' as const, defaultQty: 200, unit: 'g' as const, c: 360, p: 26, f: 28, carb: 0 },
+  { name: 'Сыр Моцарелла', category: 'fridge' as const, defaultQty: 200, unit: 'g' as const, c: 280, p: 28, f: 17, carb: 3.1 },
+  { name: 'Сыр Фета', category: 'fridge' as const, defaultQty: 200, unit: 'g' as const, c: 264, p: 14, f: 21, carb: 4 },
+  { name: 'Сметана 15%', category: 'fridge' as const, defaultQty: 300, unit: 'g' as const, c: 160, p: 2.6, f: 15, carb: 3.6 },
+  { name: 'Молоко 2.5%', category: 'fridge' as const, defaultQty: 1000, unit: 'ml' as const, c: 54, p: 2.9, f: 2.5, carb: 4.8 },
+  { name: 'Йогурт греческий 2%', category: 'fridge' as const, defaultQty: 400, unit: 'g' as const, c: 60, p: 9, f: 2, carb: 3.5 },
+  { name: 'Сливочное масло 82.5%', category: 'fridge' as const, defaultQty: 180, unit: 'g' as const, c: 748, p: 0.6, f: 82.5, carb: 0.8 },
+
+  // Овощи, зелень и картофель
   { name: 'Огурцы свежие', category: 'fridge' as const, defaultQty: 500, unit: 'g' as const, c: 15, p: 0.8, f: 0.1, carb: 3 },
   { name: 'Помидоры', category: 'fridge' as const, defaultQty: 500, unit: 'g' as const, c: 18, p: 0.9, f: 0.2, carb: 3.9 },
-  { name: 'Болгарский перец', category: 'fridge' as const, defaultQty: 400, unit: 'g' as const, c: 27, p: 1.3, f: 0.3, carb: 5.3 }
+  { name: 'Болгарский перец', category: 'fridge' as const, defaultQty: 400, unit: 'g' as const, c: 27, p: 1.3, f: 0.3, carb: 5.3 },
+  { name: 'Брокколи', category: 'fridge' as const, defaultQty: 400, unit: 'g' as const, c: 34, p: 2.8, f: 0.4, carb: 6.6 },
+  { name: 'Цветная капуста', category: 'fridge' as const, defaultQty: 400, unit: 'g' as const, c: 25, p: 2, f: 0.3, carb: 5 },
+  { name: 'Кабачки', category: 'fridge' as const, defaultQty: 500, unit: 'g' as const, c: 17, p: 1.2, f: 0.2, carb: 3.1 },
+  { name: 'Баклажаны', category: 'fridge' as const, defaultQty: 400, unit: 'g' as const, c: 25, p: 1, f: 0.2, carb: 5.8 },
+  { name: 'Морковь', category: 'fridge' as const, defaultQty: 500, unit: 'g' as const, c: 35, p: 1.3, f: 0.1, carb: 6.9 },
+  { name: 'Лук репчатый', category: 'pantry' as const, defaultQty: 500, unit: 'g' as const, c: 41, p: 1.4, f: 0.2, carb: 8.2 },
+  { name: 'Чеснок', category: 'pantry' as const, defaultQty: 100, unit: 'g' as const, c: 149, p: 6.5, f: 0.5, carb: 33 },
+  { name: 'Картофель', category: 'pantry' as const, defaultQty: 1500, unit: 'g' as const, c: 77, p: 2, f: 0.4, carb: 16.3 },
+  { name: 'Шпинат свежий', category: 'fridge' as const, defaultQty: 200, unit: 'g' as const, c: 23, p: 2.9, f: 0.4, carb: 3.6 },
+  { name: 'Зелень (укроп/петрушка)', category: 'fridge' as const, defaultQty: 100, unit: 'g' as const, c: 38, p: 3, f: 0.5, carb: 6 },
+
+  // Фрукты и орехи
+  { name: 'Яблоки', category: 'fridge' as const, defaultQty: 1000, unit: 'g' as const, c: 52, p: 0.4, f: 0.4, carb: 11.4 },
+  { name: 'Бананы', category: 'pantry' as const, defaultQty: 1000, unit: 'g' as const, c: 89, p: 1.1, f: 0.3, carb: 22.8 },
+  { name: 'Апельсины', category: 'fridge' as const, defaultQty: 1000, unit: 'g' as const, c: 47, p: 0.9, f: 0.2, carb: 11.8 },
+  { name: 'Лимон', category: 'fridge' as const, defaultQty: 200, unit: 'g' as const, c: 29, p: 1.1, f: 0.3, carb: 9 },
+  { name: 'Арахис', category: 'pantry' as const, defaultQty: 200, unit: 'g' as const, c: 567, p: 26, f: 49, carb: 16 },
+  { name: 'Миндаль', category: 'pantry' as const, defaultQty: 200, unit: 'g' as const, c: 579, p: 21, f: 50, carb: 22 },
+
+  // Масла, соусы и специи
+  { name: 'Оливковое масло', category: 'pantry' as const, defaultQty: 500, unit: 'ml' as const, c: 884, p: 0, f: 100, carb: 0 },
+  { name: 'Подсолнечное масло', category: 'pantry' as const, defaultQty: 1000, unit: 'ml' as const, c: 884, p: 0, f: 100, carb: 0 },
+  { name: 'Соевый соус', category: 'pantry' as const, defaultQty: 250, unit: 'ml' as const, c: 53, p: 5.6, f: 0, carb: 4.9 },
+  { name: 'Томатная паста', category: 'pantry' as const, defaultQty: 200, unit: 'g' as const, c: 82, p: 4.8, f: 0.5, carb: 15 },
+  { name: 'Соль и Специи', category: 'pantry' as const, defaultQty: 200, unit: 'g' as const, c: 0, p: 0, f: 0, carb: 0 },
+  { name: 'Мука пшеничная', category: 'pantry' as const, defaultQty: 1000, unit: 'g' as const, c: 364, p: 10.3, f: 1, carb: 76 }
 ];
 
 export const INITIAL_RECIPES: Recipe[] = [
@@ -133,6 +191,40 @@ export const INITIAL_RECIPES: Recipe[] = [
     instructions: [
       'Овсяные хлопья запарить кипятком на 3 минуты.',
       'Смешать с нежным творогом в глубокой пиале.'
+    ]
+  },
+  {
+    id: 'classic-milk-omelette',
+    title: 'Нежный пышный омлет на молоке',
+    category: 'BREAKFAST',
+    isBatchable: false,
+    prepTimeMin: 7,
+    imageUrl: 'https://images.unsplash.com/photo-1510693206972-df098062cb71?auto=format&fit=crop&w=800&q=80',
+    ingredients: [
+      { productId: 'eggs', productName: 'Яйца куриные', defaultGrams: 150, caloriesPer100g: 157, proteinPer100g: 12.7, fatPer100g: 11.5, carbPer100g: 0.7, category: 'fridge' },
+      { productId: 'milk', productName: 'Молоко 2.5%', defaultGrams: 100, caloriesPer100g: 54, proteinPer100g: 2.9, fatPer100g: 2.5, carbPer100g: 4.8, category: 'fridge' }
+    ],
+    instructions: [
+      'Взбить яйца с молоком и щепоткой соли венчиком до однородности.',
+      'Вылить смесь на разогретую антипригарную сковороду.',
+      'Готовить под крышкой на слабом огне 5-7 минут до пышности.'
+    ]
+  },
+  {
+    id: 'french-scrambled-eggs-milk',
+    title: 'Французская яичница-болтунья на молоке',
+    category: 'BREAKFAST',
+    isBatchable: false,
+    prepTimeMin: 6,
+    imageUrl: 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?auto=format&fit=crop&w=800&q=80',
+    ingredients: [
+      { productId: 'eggs', productName: 'Яйца куриные', defaultGrams: 200, caloriesPer100g: 157, proteinPer100g: 12.7, fatPer100g: 11.5, carbPer100g: 0.7, category: 'fridge' },
+      { productId: 'milk', productName: 'Молоко 2.5%', defaultGrams: 50, caloriesPer100g: 54, proteinPer100g: 2.9, fatPer100g: 2.5, carbPer100g: 4.8, category: 'fridge' }
+    ],
+    instructions: [
+      'Взбить яйца с молоком в сотейнике.',
+      'Готовить на постоянном медленном огне, постоянно помешивая силиконовой лопаткой.',
+      'Снять с огня, когда яичница станет шелковистой и крем-образной.'
     ]
   }
 ];

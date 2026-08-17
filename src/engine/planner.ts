@@ -68,9 +68,25 @@ export function generateMealOptions(
 
   // 2. Filter recipes against user Blacklist
   const validRecipes = recipes.filter(recipe => {
-    return !recipe.ingredients.some(ing => 
-      profile.blacklist.some(b => b.toLowerCase() === ing.productName.toLowerCase())
+    if (!profile.blacklist || profile.blacklist.length === 0) return true;
+
+    // Check if recipe title matches blacklisted term
+    const titleMatch = profile.blacklist.some(b => {
+      const term = b.trim().toLowerCase();
+      return term.length > 0 && recipe.title.toLowerCase().includes(term);
+    });
+    if (titleMatch) return false;
+
+    // Check if any ingredient matches blacklisted term
+    const ingredientMatch = recipe.ingredients.some(ing => 
+      profile.blacklist.some(b => {
+        const term = b.trim().toLowerCase();
+        const ingName = ing.productName.toLowerCase();
+        return term.length > 0 && (ingName.includes(term) || term.includes(ingName));
+      })
     );
+
+    return !ingredientMatch;
   });
 
   // 3. Score and scale candidate recipes based on available inventory
@@ -87,14 +103,53 @@ export function generateMealOptions(
 
     // Check if inventory has ingredients
     let hasIngredientsInInventory = true;
+    let mainFridgeIngredientCount = 0;
 
     const scaledIngredients: ScaledIngredient[] = recipe.ingredients.map(ing => {
-      const scaledGrams = Math.round(ing.defaultGrams * scaleFactor);
+      let scaledGrams = Math.round(ing.defaultGrams * scaleFactor);
+
+      // Smart weight caps for non-caloric/low-caloric staples so salt/sugar/spices never scale to 45g!
+      const lowerName = ing.productName.toLowerCase();
+      if (lowerName.includes('соль') || lowerName.includes('специ') || lowerName.includes('перец') || lowerName.includes('salt') || lowerName.includes('spice')) {
+        scaledGrams = 3; // Max 3g of salt/spices per portion
+      } else if (lowerName.includes('сахар') || lowerName.includes('sugar')) {
+        scaledGrams = 5; // Max 5g of sugar per portion
+      } else if (lowerName.includes('чеснок') || lowerName.includes('имбирь') || lowerName.includes('garlic') || lowerName.includes('ginger')) {
+        scaledGrams = 5; // Max 5g garlic/ginger
+      } else if (lowerName.includes('лук') || lowerName.includes('onion')) {
+        scaledGrams = 25; // Max 25g onion
+      } else if (lowerName.includes('масло') || lowerName.includes('oil')) {
+        scaledGrams = Math.min(15, Math.max(5, scaledGrams)); // 5-15g oil
+      } else if (lowerName.includes('вода') || lowerName.includes('water')) {
+        scaledGrams = 150; // 150g water
+      }
       
-      // Check inventory quantity
-      const inStock = inventory.find(inv => inv.name.toLowerCase() === ing.productName.toLowerCase());
-      if (!inStock || inStock.quantityGrams < scaledGrams * 0.5) {
-        hasIngredientsInInventory = false;
+      // Flexible inventory matching (e.g. "Яйца" matching "Яйца куриные")
+      const inStock = inventory.find(inv => {
+        const invName = inv.name.toLowerCase().trim();
+        const ingName = ing.productName.toLowerCase().trim();
+        return invName === ingName || invName.includes(ingName) || ingName.includes(invName);
+      });
+
+      const isStapleOrOptional = ing.category === 'pantry' || 
+        ['water', 'salt', 'pepper', 'oil', 'flour', 'spices', 'spice', 'garlic', 'onion', 'ginger', 'sugar', 'vinegar', 'sauce', 'herb', 'parsley', 'coriander', 'turmeric', 'butter', 'cream', 'chives', 'oregano', 'basil', 'chili', 'paprika', 'mustard', 'вода', 'соль', 'перец', 'масло', 'специи', 'сахар', 'чеснок', 'лук', 'зелень', 'соус', 'мука', 'укроп', 'петрушка'].some(s => ing.productName.toLowerCase().includes(s));
+
+      if (inStock && !isStapleOrOptional) {
+        mainFridgeIngredientCount++;
+      }
+
+      if (!inStock) {
+        if (!isStapleOrOptional) {
+          hasIngredientsInInventory = false;
+        }
+      } else {
+        // Unit-aware stock check: If item is measured in pieces (e.g. eggs @ 50g per egg)
+        const isPieceUnit = inStock.unit === 'pcs' || inStock.name.toLowerCase().includes('яйц');
+        const requiredAmount = isPieceUnit ? Math.ceil(scaledGrams / 50) : (scaledGrams * 0.5);
+
+        if (inStock.quantityGrams < requiredAmount) {
+          hasIngredientsInInventory = false;
+        }
       }
 
       return {
@@ -114,8 +169,15 @@ export function generateMealOptions(
     let portionsToCook = 1;
     if (recipe.isBatchable) {
       const canSupportTwoPortions = scaledIngredients.every(ing => {
-        const inStock = inventory.find(inv => inv.name.toLowerCase() === ing.productName.toLowerCase());
-        return inStock && inStock.quantityGrams >= ing.scaledGrams * 2;
+        const inStock = inventory.find(inv => {
+          const invName = inv.name.toLowerCase().trim();
+          const ingName = ing.productName.toLowerCase().trim();
+          return invName === ingName || invName.includes(ingName) || ingName.includes(invName);
+        });
+        if (!inStock) return false;
+        const isPieceUnit = inStock.unit === 'pcs' || inStock.name.toLowerCase().includes('яйц');
+        const requiredAmount = isPieceUnit ? Math.ceil((ing.scaledGrams * 2) / 50) : (ing.scaledGrams * 2);
+        return inStock.quantityGrams >= requiredAmount;
       });
       if (canSupportTwoPortions) {
         portionsToCook = 2;
@@ -147,9 +209,16 @@ export function generateMealOptions(
       totalFat,
       totalCarb
     });
-
-    if (options.length >= 4) break; // Limit to top 3-4 options
   }
 
-  return options;
+  // Sort options by how many main fridge ingredients they utilize (best utilization first!), keeping reheat options at top!
+  options.sort((a, b) => {
+    if (a.isReheatOption) return -1;
+    if (b.isReheatOption) return 1;
+    const aUsed = a.scaledIngredients.filter(ing => inventory.some(inv => inv.name.toLowerCase().includes(ing.productName.toLowerCase()))).length;
+    const bUsed = b.scaledIngredients.filter(ing => inventory.some(inv => inv.name.toLowerCase().includes(ing.productName.toLowerCase()))).length;
+    return bUsed - aUsed;
+  });
+
+  return options.slice(0, 4);
 }
