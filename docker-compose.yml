@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  foodality:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: foodality_pwa
+    ports:
+      - "8080:80"
+    restart: always
+
+  # Optional Cloudflare Tunnel Service (Uncomment and add your token to deploy via Docker)
+  # cloudflared:
+  #   image: cloudflare/cloudflared:latest
+  #   container_name: foodality_tunnel
+  #   restart: always
+  #   command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+  #   depends_on:
+  #     - foodality
