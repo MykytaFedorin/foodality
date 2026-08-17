@@ -28,7 +28,7 @@ export const App: React.FC = () => {
   if (loading) {
     return (
       <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-emerald)' }}>
-        <Sparkles size={32} className="animate-spin" />
+        <Sparkles size={36} className="animate-spin" />
       </div>
     );
   }
@@ -40,15 +40,23 @@ export const App: React.FC = () => {
   return (
     <>
       <PWAInstallPrompt />
-      {/* App Header */}
+
+      {/* App Header with safe area padding */}
       <header style={{
-        padding: '16px 20px',
+        paddingTop: 'calc(14px + var(--safe-area-top))',
+        paddingBottom: '14px',
+        paddingLeft: '16px',
+        paddingRight: '16px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         borderBottom: '1px solid var(--border-color)',
-        background: 'rgba(15, 23, 42, 0.8)',
-        backdropFilter: 'blur(12px)'
+        background: 'rgba(7, 10, 18, 0.85)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 800
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Sparkles color="var(--accent-emerald)" size={22} />
@@ -57,13 +65,13 @@ export const App: React.FC = () => {
           </h1>
         </div>
 
-        <div className="chip chip-emerald" style={{ fontSize: '0.75rem' }}>
+        <div className="chip chip-emerald">
           {profile.targetCalories} ккал/день
         </div>
       </header>
 
       {/* Main Tab Content */}
-      <main style={{ flex: 1 }}>
+      <main style={{ flex: 1, paddingBottom: '12px' }}>
         {activeTab === 'eat' && <MealEngine />}
         {activeTab === 'shopping' && <ShoppingList />}
         {activeTab === 'inventory' && <InventoryView />}
