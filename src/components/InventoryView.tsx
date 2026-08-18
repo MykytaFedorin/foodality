@@ -86,11 +86,15 @@ export const IOSWheelPicker: React.FC<{
           height: '100%',
           overflowY: 'scroll',
           scrollSnapType: 'y mandatory',
+          scrollSnapStop: 'normal',
+          scrollBehavior: 'smooth',
+          WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
           paddingTop: `${itemHeight * 2}px`,
           paddingBottom: `${itemHeight * 2}px`,
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          willChange: 'scroll-position, transform'
         }}
       >
         {options.map((opt) => {
@@ -328,7 +332,7 @@ export const InventoryView: React.FC = () => {
   const [showEditWheelPicker, setShowEditWheelPicker] = useState<boolean>(false);
 
   return (
-    <div style={{ padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div style={{ padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: '16px', WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth', overscrollBehaviorY: 'contain' }}>
       {/* Horizontally scrollable sub-tabs header */}
       <div 
         style={{ 
