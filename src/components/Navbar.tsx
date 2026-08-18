@@ -30,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
         onClick={() => setActiveTab('inventory')}
       >
         <Refrigerator size={24} />
-        <span>Холодильник</span>
+        <span>Продукты</span>
       </button>
 
       <button 

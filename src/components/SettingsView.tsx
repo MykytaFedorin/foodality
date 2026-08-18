@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { db, UserProfile } from '../db';
 import { INITIAL_STAPLES } from '../db/initialData';
 import { Settings, Flame, ShieldAlert, Save, CheckCircle, Plus, Search } from 'lucide-react';
+import { IOSWheelPicker } from './InventoryView';
+
+const CALORIE_OPTIONS = Array.from({ length: 61 }, (_, i) => 1000 + i * 50);
 
 export const SettingsView: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [targetCalories, setTargetCalories] = useState<number>(2000);
+  const [showCalorieWheel, setShowCalorieWheel] = useState<boolean>(false);
   const [blacklist, setBlacklist] = useState<string[]>([]);
   const [blacklistSearchQuery, setBlacklistSearchQuery] = useState<string>('');
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false);
@@ -87,17 +91,43 @@ export const SettingsView: React.FC = () => {
 
         <div>
           <label style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
-            Суточный калораж: <strong style={{ color: 'var(--text-primary)', fontSize: '1.15rem' }}>{targetCalories} ккал</strong>
+            Суточный калораж
           </label>
-          <input 
-            type="range" 
-            min="1200" 
-            max="4000" 
-            step="50" 
-            value={targetCalories}
-            onChange={(e) => setTargetCalories(Number(e.target.value))}
-            style={{ width: '100%', accentColor: 'var(--accent-emerald)', cursor: 'pointer' }}
-          />
+          <button
+            type="button"
+            onClick={() => setShowCalorieWheel(!showCalorieWheel)}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              borderRadius: 'var(--radius-md)',
+              border: `1px solid ${showCalorieWheel ? 'var(--accent-emerald)' : 'rgba(255, 255, 255, 0.15)'}`,
+              background: showCalorieWheel ? 'rgba(16, 185, 129, 0.18)' : 'rgba(255, 255, 255, 0.03)',
+              color: showCalorieWheel ? '#34d399' : 'var(--text-primary)',
+              fontWeight: 800,
+              fontSize: '1.2rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <span>{targetCalories} ккал</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: showCalorieWheel ? '#34d399' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+              <Settings size={18} />
+            </span>
+          </button>
+
+          {showCalorieWheel && (
+            <div style={{ marginTop: '10px' }}>
+              <IOSWheelPicker
+                options={CALORIE_OPTIONS}
+                value={CALORIE_OPTIONS.includes(targetCalories) ? targetCalories : 2000}
+                unit="ккал"
+                onChange={(val) => setTargetCalories(val)}
+              />
+            </div>
+          )}
         </div>
       </div>
 

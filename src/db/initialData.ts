@@ -16,6 +16,8 @@ export interface Recipe {
   isBatchable: boolean;
   prepTimeMin: number;
   imageUrl: string;
+  rating?: number;
+  reviewCount?: number;
   ingredients: RecipeIngredient[];
   instructions: string[];
 }
@@ -103,6 +105,8 @@ export const INITIAL_RECIPES: Recipe[] = [
     category: 'LUNCH',
     isBatchable: true,
     prepTimeMin: 20,
+    rating: 4.9,
+    reviewCount: 184,
     imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
     ingredients: [
       { productId: 'chicken', productName: 'Куриное филе', defaultGrams: 180, caloriesPer100g: 165, proteinPer100g: 31, fatPer100g: 3.6, carbPer100g: 0, category: 'fridge' },
@@ -124,6 +128,8 @@ export const INITIAL_RECIPES: Recipe[] = [
     category: 'BREAKFAST',
     isBatchable: false,
     prepTimeMin: 10,
+    rating: 4.8,
+    reviewCount: 96,
     imageUrl: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=800&q=80',
     ingredients: [
       { productId: 'eggs', productName: 'Яйца куриные', defaultGrams: 150, caloriesPer100g: 157, proteinPer100g: 12.7, fatPer100g: 11.5, carbPer100g: 0.7, category: 'fridge' },
@@ -144,6 +150,8 @@ export const INITIAL_RECIPES: Recipe[] = [
     category: 'DINNER',
     isBatchable: true,
     prepTimeMin: 25,
+    rating: 4.9,
+    reviewCount: 210,
     imageUrl: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=800&q=80',
     ingredients: [
       { productId: 'turkey', productName: 'Филе индейки', defaultGrams: 190, caloriesPer100g: 130, proteinPer100g: 25, fatPer100g: 2.5, carbPer100g: 0, category: 'fridge' },
@@ -164,6 +172,8 @@ export const INITIAL_RECIPES: Recipe[] = [
     category: 'LUNCH',
     isBatchable: true,
     prepTimeMin: 18,
+    rating: 4.7,
+    reviewCount: 145,
     imageUrl: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281270?auto=format&fit=crop&w=800&q=80',
     ingredients: [
       { productId: 'pasta', productName: 'Макароны твердых сортов', defaultGrams: 85, caloriesPer100g: 350, proteinPer100g: 12, fatPer100g: 1.5, carbPer100g: 71, category: 'pantry' },
@@ -183,6 +193,8 @@ export const INITIAL_RECIPES: Recipe[] = [
     category: 'BREAKFAST',
     isBatchable: false,
     prepTimeMin: 5,
+    rating: 4.6,
+    reviewCount: 78,
     imageUrl: 'https://images.unsplash.com/photo-1517673400267-0251440c45dc?auto=format&fit=crop&w=800&q=80',
     ingredients: [
       { productId: 'cottage_cheese', productName: 'Творог 5%', defaultGrams: 200, caloriesPer100g: 121, proteinPer100g: 17, fatPer100g: 5, carbPer100g: 3, category: 'fridge' },
@@ -199,6 +211,8 @@ export const INITIAL_RECIPES: Recipe[] = [
     category: 'BREAKFAST',
     isBatchable: false,
     prepTimeMin: 7,
+    rating: 4.8,
+    reviewCount: 112,
     imageUrl: 'https://images.unsplash.com/photo-1510693206972-df098062cb71?auto=format&fit=crop&w=800&q=80',
     ingredients: [
       { productId: 'eggs', productName: 'Яйца куриные', defaultGrams: 150, caloriesPer100g: 157, proteinPer100g: 12.7, fatPer100g: 11.5, carbPer100g: 0.7, category: 'fridge' },
@@ -228,3 +242,69 @@ export const INITIAL_RECIPES: Recipe[] = [
     ]
   }
 ];
+
+// Tier 1: Local static photo map (100% Offline PWA Ready!)
+const LOCAL_STATIC_FOOD_IMAGES: Record<string, string> = {
+  яйц: '/ingredients/eggs.jpg',
+  молок: '/ingredients/milk.jpg',
+  куриц: '/ingredients/chicken.jpg',
+  индейк: '/ingredients/turkey.jpg',
+  говядин: '/ingredients/beef.jpg',
+  свинин: '/ingredients/pork.jpg',
+  фарш: '/ingredients/mince.jpg',
+  бедрон: '/ingredients/chicken.jpg',
+  рис: '/ingredients/rice.jpg',
+  макарон: '/ingredients/pasta.jpg',
+  спагетти: '/ingredients/spaghetti.jpg',
+  сыр: '/ingredients/cheese.jpg',
+  творог: '/ingredients/cottage-cheese.jpg',
+  сметан: '/ingredients/sour-cream.jpg',
+  йогурт: '/ingredients/yogurt.jpg',
+  гречк: '/ingredients/buckwheat.jpg',
+  овсян: '/ingredients/oats.jpg',
+  картофел: '/ingredients/potatoes.jpg',
+  рыб: '/ingredients/fish.jpg',
+  лосос: '/ingredients/salmon.jpg',
+  тунец: '/ingredients/tuna.jpg',
+  креветк: '/ingredients/shrimp.jpg',
+  огурец: '/ingredients/cucumber.jpg',
+  помидор: '/ingredients/tomatoes.jpg',
+  перец: '/ingredients/pepper.jpg',
+  броккол: '/ingredients/broccoli.jpg',
+  кабачок: '/ingredients/zucchini.jpg',
+  морков: '/ingredients/carrot.jpg',
+  лук: '/ingredients/onion.jpg',
+  чеснок: '/ingredients/garlic.jpg',
+  яблок: '/ingredients/apples.jpg',
+  банан: '/ingredients/bananas.jpg',
+  апельсин: '/ingredients/oranges.jpg',
+  лимон: '/ingredients/lemon.jpg',
+  масло: '/ingredients/olive-oil.jpg',
+  соль: '/ingredients/salt.jpg',
+  мука: '/ingredients/flour.jpg'
+};
+
+// Tier 3: Local fallback placeholder image
+export const FALLBACK_FOOD_IMAGE = '/ingredients/placeholder.jpg';
+
+export function getProductImageUrl(name: string, existingUrl?: string): string {
+  if (existingUrl && existingUrl.length > 5) return existingUrl;
+  
+  const lower = name.toLowerCase();
+
+  // Tier 1: Check local static photo map (100% Offline PWA Ready)
+  for (const [key, val] of Object.entries(LOCAL_STATIC_FOOD_IMAGES)) {
+    if (lower.includes(key)) {
+      return val;
+    }
+  }
+
+  // Tier 2: Dynamic live CDN lookup for custom ingredients
+  const cleanName = name.replace(/\d+/g, '').replace(/%/g, '').trim().split(' ')[0];
+  if (cleanName.length > 0) {
+    return `https://www.themealdb.com/images/ingredients/${encodeURIComponent(cleanName)}-Small.png`;
+  }
+
+  // Tier 3: Local fallback placeholder
+  return FALLBACK_FOOD_IMAGE;
+}

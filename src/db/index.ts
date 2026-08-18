@@ -1,5 +1,5 @@
 import Dexie, { Table } from 'dexie';
-import { Recipe, INITIAL_RECIPES, INITIAL_STAPLES } from './initialData';
+import { Recipe, INITIAL_RECIPES, INITIAL_STAPLES, getProductImageUrl } from './initialData';
 
 export interface UserProfile {
   id: string;
@@ -23,6 +23,7 @@ export interface InventoryItem {
   fatPer100g: number;
   carbPer100g: number;
   isStaple?: boolean;
+  imageUrl?: string;
 }
 
 export interface CookedMeal {
@@ -113,7 +114,8 @@ export async function populateInitialInventory(selectedStaplesWithQty: SelectedS
         proteinPer100g: meta.p,
         fatPer100g: meta.f,
         carbPer100g: meta.carb,
-        isStaple: true
+        isStaple: true,
+        imageUrl: getProductImageUrl(meta.name)
       });
     }
   }
